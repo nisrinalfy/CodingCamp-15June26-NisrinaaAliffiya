@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List Life Dashboard</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Greeting -->
+        <div class="card">
+
+            <h1 id="greetingText"></h1>
+
+            <p id="dateTime"></p>
+
+            <hr>
+
+            <input
+                type="text"
+                id="nameInput"
+                placeholder="Enter your name"
+            >
+
+            <button id="saveNameBtn">
+                Save Name
+            </button>
+
+            <button id="themeBtn">
+                Toggle Dark Mode
+            </button>
+
+        </div>
+
+        <!-- Focus Timer -->
+        <div class="card">
+
+            <h2>Focus Timer</h2>
+
+            <h1 id="timer">25:00</h1>
+
+            <button id="startBtn">Start</button>
+
+            <button id="stopBtn">Stop</button>
+
+            <button id="resetBtn">Reset</button>
+
+        </div>
+
+        <!-- To Do List -->
+        <div class="card">
+
+            <h2>To-Do List</h2>
+
+            <input
+                type="text"
+                id="taskInput"
+                placeholder="Add task..."
+            >
+
+            <button id="addTaskBtn">
+                Add
+            </button>
+
+            <ul id="taskList"></ul>
+
+        </div>
+
+        <!-- Quick Links -->
+        <div class="card">
+
+            <h2>Quick Links</h2>
+
+            <input
+                type="text"
+                id="linkName"
+                placeholder="Website Name"
+            >
+
+            <input
+                type="text"
+                id="linkUrl"
+                placeholder="https://..."
+            >
+
+            <button id="addLinkBtn">
+                Add Link
+            </button>
+
+            <ul id="linkList"></ul>
+
+        </div>
+
+    </div>
+
+    <script src="js/script.js"></script>
+
+</body>
+</html>
