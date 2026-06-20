@@ -1,477 +1,234 @@
-// =====================
-// CUSTOM NAME
-// =====================
+// ===== DARK MODE =====
+const themeBtn = document.getElementById('themeBtn');
 
-const savedName =
-    localStorage.getItem("userName") || "";
+// Load saved theme
+const savedTheme = localStorage.getItem('theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+updateThemeBtn(savedTheme);
+
+themeBtn.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  updateThemeBtn(next);
+});
+
+function updateThemeBtn(theme) {
+  themeBtn.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+}
 
 
-// =====================
-// GREETING
-// =====================
+// ===== GREETING & DATETIME =====
+const greetingText = document.getElementById('greetingText');
+const dateTimeEl = document.getElementById('dateTime');
+const nameInput = document.getElementById('nameInput');
+const saveNameBtn = document.getElementById('saveNameBtn');
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 18) return 'Good Afternoon';
+  return 'Good Evening';
+}
+
+function updateGreeting() {
+  const name = localStorage.getItem('userName') || 'Friend';
+  greetingText.textContent = `${getGreeting()}, ${name}! 👋`;
+}
 
 function updateDateTime() {
-
-    const now = new Date();
-
-    const hour = now.getHours();
-
-    let greeting = "";
-
-    if (hour < 12) {
-        greeting = "Good Morning";
-    } else if (hour < 18) {
-        greeting = "Good Afternoon";
-    } else {
-        greeting = "Good Evening";
-    }
-
-    const userName =
-        localStorage.getItem("userName");
-
-    document.getElementById("greetingText")
-        .textContent =
-        userName
-            ? `${greeting}, ${userName}`
-            : greeting;
-
-    document.getElementById("dateTime")
-        .textContent =
-        now.toLocaleString();
-
+  const now = new Date();
+  dateTimeEl.textContent = now.toLocaleString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 }
 
+// Load saved name into input
+const savedName = localStorage.getItem('userName');
+if (savedName) nameInput.value = savedName;
+
+saveNameBtn.addEventListener('click', () => {
+  const name = nameInput.value.trim();
+  if (name) {
+    localStorage.setItem('userName', name);
+    updateGreeting();
+  }
+});
+
+updateGreeting();
 updateDateTime();
-
 setInterval(updateDateTime, 1000);
+setInterval(updateGreeting, 60000);
 
 
-// =====================
-// TIMER
-// =====================
+// ===== FOCUS TIMER =====
+const timerEl = document.getElementById('timer');
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const resetBtn = document.getElementById('resetBtn');
 
-let timeLeft = 1500;
+let totalSeconds = 25 * 60;
+let timerInterval = null;
+let running = false;
 
-let timerInterval;
-
-const timerDisplay =
-    document.getElementById("timer");
-
-function updateTimerDisplay() {
-
-    const minutes =
-        Math.floor(timeLeft / 60);
-
-    const seconds =
-        timeLeft % 60;
-
-    timerDisplay.textContent =
-        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-
+function formatTime(secs) {
+  const m = String(Math.floor(secs / 60)).padStart(2, '0');
+  const s = String(secs % 60).padStart(2, '0');
+  return `${m}:${s}`;
 }
 
-document
-.getElementById("startBtn")
-.addEventListener("click", () => {
+function renderTimer() {
+  timerEl.textContent = formatTime(totalSeconds);
+}
 
-    if (timerInterval) return;
-
-    timerInterval = setInterval(() => {
-
-        if (timeLeft > 0) {
-
-            timeLeft--;
-
-            updateTimerDisplay();
-
-        } else {
-
-            clearInterval(timerInterval);
-
-            timerInterval = null;
-
-            alert("Time's up!");
-
-        }
-
-    }, 1000);
-
+startBtn.addEventListener('click', () => {
+  if (running) return;
+  running = true;
+  timerInterval = setInterval(() => {
+    if (totalSeconds <= 0) {
+      clearInterval(timerInterval);
+      running = false;
+      timerEl.textContent = '00:00';
+      alert('⏰ Focus session complete! Take a break.');
+      return;
+    }
+    totalSeconds--;
+    renderTimer();
+  }, 1000);
 });
 
-document
-.getElementById("stopBtn")
-.addEventListener("click", () => {
-
-    clearInterval(timerInterval);
-
-    timerInterval = null;
-
+stopBtn.addEventListener('click', () => {
+  clearInterval(timerInterval);
+  running = false;
 });
 
-document
-.getElementById("resetBtn")
-.addEventListener("click", () => {
-
-    clearInterval(timerInterval);
-
-    timerInterval = null;
-
-    timeLeft = 1500;
-
-    updateTimerDisplay();
-
+resetBtn.addEventListener('click', () => {
+  clearInterval(timerInterval);
+  running = false;
+  totalSeconds = 25 * 60;
+  renderTimer();
 });
 
-updateTimerDisplay();
 
+// ===== TO-DO LIST =====
+const taskInput = document.getElementById('taskInput');
+const addTaskBtn = document.getElementById('addTaskBtn');
+const taskList = document.getElementById('taskList');
 
-// =====================
-// TODO LIST
-// =====================
-
-let tasks =
-    JSON.parse(
-        localStorage.getItem("tasks")
-    ) || [];
-
-const taskInput =
-    document.getElementById("taskInput");
-
-const addTaskBtn =
-    document.getElementById("addTaskBtn");
-
-const taskList =
-    document.getElementById("taskList");
+let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
 function saveTasks() {
-
-    localStorage.setItem(
-        "tasks",
-        JSON.stringify(tasks)
-    );
-
+  localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
 function renderTasks() {
+  taskList.innerHTML = '';
+  tasks.forEach((task, index) => {
+    const li = document.createElement('li');
 
-    taskList.innerHTML = "";
-
-    tasks.forEach((task, index) => {
-
-        const li =
-            document.createElement("li");
-
-        const checkbox =
-            document.createElement("input");
-
-        checkbox.type = "checkbox";
-
-        checkbox.checked = task.done;
-
-        checkbox.addEventListener("change", () => {
-
-            tasks[index].done =
-                checkbox.checked;
-
-            saveTasks();
-
-            renderTasks();
-
-        });
-
-        const span =
-            document.createElement("span");
-
-        span.textContent =
-            task.text;
-
-        if (task.done) {
-
-            span.style.textDecoration =
-                "line-through";
-
-        }
-
-        const editBtn =
-            document.createElement("button");
-
-        editBtn.textContent =
-            "Edit";
-
-        editBtn.addEventListener("click", () => {
-
-            const newText =
-                prompt(
-                    "Edit task",
-                    task.text
-                );
-
-            if (!newText) return;
-
-            tasks[index].text =
-                newText;
-
-            saveTasks();
-
-            renderTasks();
-
-        });
-
-        const deleteBtn =
-            document.createElement("button");
-
-        deleteBtn.textContent =
-            "Delete";
-
-        deleteBtn.addEventListener("click", () => {
-
-            tasks.splice(index, 1);
-
-            saveTasks();
-
-            renderTasks();
-
-        });
-
-        li.appendChild(checkbox);
-        li.appendChild(span);
-        li.appendChild(editBtn);
-        li.appendChild(deleteBtn);
-
-        taskList.appendChild(li);
-
+    const span = document.createElement('span');
+    span.textContent = task.text;
+    if (task.done) span.classList.add('done');
+    span.addEventListener('click', () => {
+      tasks[index].done = !tasks[index].done;
+      saveTasks();
+      renderTasks();
     });
 
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '✕';
+    deleteBtn.classList.add('delete-btn');
+    deleteBtn.addEventListener('click', () => {
+      tasks.splice(index, 1);
+      saveTasks();
+      renderTasks();
+    });
+
+    li.appendChild(span);
+    li.appendChild(deleteBtn);
+    taskList.appendChild(li);
+  });
 }
 
-addTaskBtn.addEventListener("click", () => {
+function addTask() {
+  const text = taskInput.value.trim();
+  if (!text) return;
+  tasks.push({ text, done: false });
+  saveTasks();
+  renderTasks();
+  taskInput.value = '';
+}
 
-    const task =
-        taskInput.value.trim();
-
-    if (task === "") return;
-
-    const duplicate =
-        tasks.some(
-            item =>
-            item.text.toLowerCase() ===
-            task.toLowerCase()
-        );
-
-    if (duplicate) {
-
-        alert("Task already exists!");
-
-        return;
-
-    }
-
-    tasks.push({
-        text: task,
-        done: false
-    });
-
-    saveTasks();
-
-    renderTasks();
-
-    taskInput.value = "";
-
-});
-
-taskInput.addEventListener("keypress", (e) => {
-
-    if (e.key === "Enter") {
-
-        addTaskBtn.click();
-
-    }
-
+addTaskBtn.addEventListener('click', addTask);
+taskInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addTask();
 });
 
 renderTasks();
 
 
-// =====================
-// NAME SAVE
-// =====================
+// ===== QUICK LINKS =====
+const linkName = document.getElementById('linkName');
+const linkUrl = document.getElementById('linkUrl');
+const addLinkBtn = document.getElementById('addLinkBtn');
+const linkList = document.getElementById('linkList');
 
-const saveNameBtn =
-    document.getElementById("saveNameBtn");
-
-if (saveNameBtn) {
-
-    saveNameBtn.addEventListener(
-        "click",
-        () => {
-
-            const name =
-                document
-                .getElementById("nameInput")
-                .value;
-
-            localStorage.setItem(
-                "userName",
-                name
-            );
-
-            updateDateTime();
-
-        }
-    );
-
-}
-
-
-// =====================
-// DARK MODE
-// =====================
-
-const themeBtn =
-    document.getElementById("themeBtn");
-
-if (
-    localStorage.getItem("theme")
-    === "dark"
-) {
-
-    document.body.classList.add("dark");
-
-}
-
-if (themeBtn) {
-
-    themeBtn.addEventListener(
-        "click",
-        () => {
-
-            document.body
-                .classList
-                .toggle("dark");
-
-            const theme =
-                document.body
-                .classList
-                .contains("dark")
-                    ? "dark"
-                    : "light";
-
-            localStorage.setItem(
-                "theme",
-                theme
-            );
-
-        }
-    );
-
-}
-
-// =====================
-// QUICK LINKS
-// =====================
-
-let links =
-JSON.parse(
-    localStorage.getItem("links")
-) || [];
-
-const linkName =
-document.getElementById("linkName");
-
-const linkUrl =
-document.getElementById("linkUrl");
-
-const addLinkBtn =
-document.getElementById("addLinkBtn");
-
-const linkList =
-document.getElementById("linkList");
+let links = JSON.parse(localStorage.getItem('links')) || [];
 
 function saveLinks() {
-
-    localStorage.setItem(
-        "links",
-        JSON.stringify(links)
-    );
-
+  localStorage.setItem('links', JSON.stringify(links));
 }
 
 function renderLinks() {
+  linkList.innerHTML = '';
+  links.forEach((link, index) => {
+    const li = document.createElement('li');
 
-    linkList.innerHTML = "";
+    const a = document.createElement('a');
+    a.href = link.url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = link.name;
 
-    links.forEach((link, index) => {
-
-        const li =
-        document.createElement("li");
-
-        const a =
-        document.createElement("a");
-
-        a.href = link.url;
-
-        a.target = "_blank";
-
-        a.textContent =
-        link.name;
-
-        const deleteBtn =
-        document.createElement("button");
-
-        deleteBtn.textContent =
-        "Delete";
-
-        deleteBtn.addEventListener(
-            "click",
-            () => {
-
-                links.splice(index,1);
-
-                saveLinks();
-
-                renderLinks();
-
-            }
-        );
-
-        li.appendChild(a);
-
-        li.appendChild(deleteBtn);
-
-        linkList.appendChild(li);
-
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '✕';
+    deleteBtn.classList.add('delete-btn');
+    deleteBtn.addEventListener('click', () => {
+      links.splice(index, 1);
+      saveLinks();
+      renderLinks();
     });
 
+    li.appendChild(a);
+    li.appendChild(deleteBtn);
+    linkList.appendChild(li);
+  });
 }
 
-addLinkBtn.addEventListener(
-    "click",
-    () => {
+function addLink() {
+  const name = linkName.value.trim();
+  let url = linkUrl.value.trim();
+  if (!name || !url) return;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url;
+  }
+  links.push({ name, url });
+  saveLinks();
+  renderLinks();
+  linkName.value = '';
+  linkUrl.value = '';
+}
 
-        const name =
-        linkName.value.trim();
-
-        const url =
-        linkUrl.value.trim();
-
-        if(
-            name === "" ||
-            url === ""
-        ) return;
-
-        links.push({
-            name:name,
-            url:url
-        });
-
-        saveLinks();
-
-        renderLinks();
-
-        linkName.value = "";
-        linkUrl.value = "";
-
-    }
-);
+addLinkBtn.addEventListener('click', addLink);
+linkUrl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addLink();
+});
 
 renderLinks();
